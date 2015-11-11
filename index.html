@@ -1,46 +1,102 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Spotify Template</title>
-	
-	<!-- Include libraries -->
-	<script src="https://code.jquery.com/jquery.min.js"></script>
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.2/angular.min.js"></script>
-	
-	<!-- Read scripts -->
-	<script src="app.js"></script>
-	<link href="app.css" type="text/css" rel="stylesheet"/>	
-	
-</head>
-<body>
-	<!-- Initiate app -->
-	<div ng-app="myApp" ng-controller="myCtrl">
-		<!-- Form -->
-		<form class="container" name="songForm">
-			<div class="form-group">
-				<label>Spotify search:</label>
-				<input name="search" placeholder="Enter your search.." ng-model="track" class="form-control"></input>
+	<head>
+		<meta charset="utf-8">
+	  	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	  	<meta name="viewport" content="width=device-width, initial-scale=1">	
+
+		<title>Spotify</title>
+
+		<!-- Include libraries: jQuery.js, bootstrap.css, bootstrap,js, angular.js, and font0awesome.css -->
+		<script src="https://code.jquery.com/jquery.min.js"></script>
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.2/angular.min.js"></script>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+		<!-- Spotify application javascript -->
+		<script src="app.js"></script>
+		<!-- Spotify application css -->
+		<link href="app.css" type="text/css" rel="stylesheet"/>	
+
+	</head>
+	<body>
+		<!-- Header -->
+		<header>
+			<div class="container">
+				<div class="head"><h1></h1></div>
 			</div>
-			<div class="form-group">
-				<button ng-disabled="songForm.search.$invalid" class="btn btn-primary" ng-click="getSongs()" type="submit">Submit</button>
+		</header>
+		<!-- Initiate app -->
+		<div class="container" ng-app="myApp" ng-controller="myCtrl">
+			<div class="container-fluid">
+				<div class="row">
+					<!-- Artist Form -->
+					<form class="container col-xs-12 col-md-12" name="artistForm" novalidate>
+						<!-- Artist Search -->
+						<div class="form-group" ng-class="{'has-error':artistForm.searchArt.$error.touched && artistForm.searchArt.$invalid}">
+							<label>Artist Search: </label>
+							<input name="searchArt" placeholder="Search an Artist..." ng-model="artist" ng-minlength="2" class="form-control" autocomplete="off" required></input>
+							<p ng-show="artistForm.searchArt.$error.minlength" class="help-block">Search is too short</p>
+						</div>
+						<!-- Artist Button -->
+						<div class="form-group">
+							<button ng-disabled="artistForm.searchArt.$invalid" class="btn btn-primary" ng-click="getSongs()" type="submit">Submit</button>
+						</div>
+					</form>
+				</div> 
+			</div> 
+			<!-- Song Filter -->
+			<div id="filterBar" class="container-fluid">
+				<!-- button that allows user to pause music whenever - only appears when hidden filter bars appear -->
+				<button class="btn btn-warning" type="submit" ng-click="pause()">Pause Music</button>
+				<div class="row">
+					<!-- Song Form -->
+					<form class="container col-xs-12 col-sm-6" name="songForm" novalidate>
+						<!-- Song Search -->
+						<div class="form-group">
+							<label>Filter by song:</label>
+							<input name="searchSong" placeholder="Search a Song..." ng-model="track" class="form-control" autocomplete="off" required></input>
+						</div>
+						<!-- Song Button -->
+						<div class="form-group">
+							<button class="btn btn-primary invisible" ng-click="getSongs()" type="submit">Submit</button>
+						</div>
+					</form>
+					<!-- Album Filter -->
+					<form class="container col-xs-12 col-sm-6" name="albumForm" novalidate>
+						<!-- Album Filter Search -->
+						<div class="form-group">
+							<label>Filter by album:</label>
+							<input name="searchAlb" placeholder="Search an Album..." ng-model="album" class="form-control" autocomplete="off" required></input>
+						</div>
+						<!-- album filter submit button -->
+						<div class="form-group">
+							<button class="btn btn-primary invisible" ng-click="getSongs()" type="submit">Submit</button>
+						</div>
+					</form>
+				</div>
+			</div>	
+			<!-- Create the popup window -->
+			<div class="overlay"></div>
+			<div id="popup">
+				<div class="instaResult"></div>
 			</div>
-		</form>
-		
-		<!-- Results -->
-		<div class="container-fixed">
-			<div class="help-block">
-				<span ng-show="tracks.length>0">Click to sample</span>
-				<span ng-show="currentSong && !audioObject.paused">(playing)</span>
+			<!-- Results -->
+			<div class="container-fixed">
+				<div class="row">
+					<div class="help-block" id ="previewText">
+						<span class="playingSpan" ng-show="tracks.length>0">Click for more info and preview:</span>
+						<span class="playingSpan" ng-show="currentSong && !audioObject.paused">(Currently playing: {{trackName}})</span>
+					</div>
+					<div id="selectImages">
+						<div ng-repeat="track in tracks" class="resultDiv" ng-click="play(track.preview_url); popup(track)">
+							<img class="image" src="{{track.album.images[1].url}}" alt="{{track.name}}" title="{{track.name}}" data-toggle="tooltip">
+						</div>
+					</div>			
+				</div> 
 			</div>
-			<ul>
-				<li ng-repeat="track in tracks" class="" ng-click="play(track.preview_url)" title="{{track.name}}">{{track.name + ', by ' + track.artists[0].name}}</li>
-			</ul>			
-		</div>
-	</div>
-</body>
+		</div> 
+	</body>
 </html>
+
